@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@types/lodash.debounce": "^4.0.9",
+    "lodash.debounce": "^4.0.8"
+  }
+}

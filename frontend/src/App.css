@@ -1,0 +1,644 @@
+.app-container {
+  min-height: 100vh;
+}
+
+.header {
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  flex-wrap: wrap;
+  gap: 16px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.header.dark-mode {
+  background: #141414;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 200px;
+}
+
+.logo-icon {
+  font-size: 24px;
+  color: #9dff00;
+}
+
+.logo-text {
+  color: #000 !important;
+  margin: 0 !important;
+  white-space: nowrap;
+}
+
+.dark-mode .logo-text {
+  color: #fff !important;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.theme-button,
+.setting-button {
+  color: #9dff00 !important;
+  font-size: 16px;
+}
+
+.header-right .ant-btn {
+  font-size: 14px;
+}
+
+.header-right .ant-btn:hover {
+  color: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.exchange-tabs {
+  flex: 1;
+  margin: 0 24px;
+  min-width: 300px;
+}
+
+.exchange-tabs .ant-tabs-nav {
+  margin: 0;
+}
+
+.exchange-tabs .ant-tabs-tab {
+  padding: 8px 20px;
+}
+
+.header:not(.dark-mode) .exchange-tabs .ant-tabs-tab .ant-tabs-tab-btn {
+  color: rgba(0, 0, 0, 0.88);
+}
+
+.header.dark-mode .exchange-tabs .ant-tabs-tab .ant-tabs-tab-btn {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.exchange-tabs .ant-tabs-tab .ant-tabs-tab-btn {
+  transition: color 0.3s;
+}
+
+.exchange-tabs .ant-tabs-tab:hover .ant-tabs-tab-btn,
+.exchange-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #9dff00 !important;
+}
+
+.exchange-tabs .ant-tabs-ink-bar {
+  background: #9dff00 !important;
+}
+
+.exchange-tabs .ant-tabs-tab::before {
+  display: none;
+}
+
+.exchange-tabs .ant-tabs-tab.ant-tabs-tab-active {
+  background: transparent;
+}
+
+.exchange-tabs .ant-tabs-nav .ant-tabs-nav-list {
+  border: none;
+}
+
+.content {
+  margin-top: 64px;
+  min-height: calc(100vh - 64px);
+  padding: 24px;
+  background: #f0f2f5;
+}
+
+.dark-mode .content,
+.dark .content,
+.dark-mode .content {
+  background: #000000 !important;
+}
+
+.search-container {
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.dark-mode .search-container {
+  background: #141414;
+}
+
+.search-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.search-input-wrapper {
+  flex: 1;
+  min-width: 300px;
+}
+
+.search-input {
+  max-width: 400px;
+}
+
+.action-button {
+  background-color: #9dff00 !important;
+  border-color: #9dff00 !important;
+  color: #000 !important;
+  white-space: nowrap;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease !important;
+}
+
+.action-button:hover,
+.action-button:focus {
+  background-color: #8ae600 !important;
+  border-color: #8ae600 !important;
+  color: #000 !important;
+  opacity: 1 !important;
+}
+
+.dark-mode .action-button:hover,
+.dark-mode .action-button:focus {
+  background-color: #8ae600 !important;
+  border-color: #8ae600 !important;
+  color: #000 !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 768px) {
+  .action-button {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: visible;
+  }
+
+  .action-button .anticon {
+    margin-right: 4px;
+  }
+}
+
+.popular-tokens-container,
+.all-tokens-container {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.popular-tokens-container.dark-mode,
+.all-tokens-container.dark-mode {
+  background: #444;
+}
+
+.popular-tokens-container {
+  margin-bottom: 24px;
+}
+
+.token-card {
+  cursor: pointer;
+  transition: all 0.3s ease !important;
+  border: 1px solid #f0f0f0;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  padding: 16px;
+}
+
+.token-card.dark-mode {
+  border: 1px solid #555;
+}
+
+.token-card:hover {
+  background-color: #9dff00 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(157, 255, 0, 0.2);
+}
+
+.token-card:hover .ant-typography {
+  color: #000 !important;
+}
+
+.token-card:hover .ant-tag {
+  border-color: #d9d9d9 !important;
+  color: rgba(0, 0, 0, 0.88) !important;
+  background: #fafafa !important;
+}
+
+.token-card.dark-mode:hover {
+  background-color: #9dff00 !important;
+  border-color: #9dff00 !important;
+}
+
+.dark .token-card:hover .ant-tag {
+  border-color: #303030 !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+  background: #1f1f1f !important;
+}
+
+.token-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.token-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.token-symbol {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1890ff;
+  margin-bottom: 4px;
+}
+
+.token-name {
+  color: #8c8c8c;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.token-name.dark-mode {
+  color: #ccc;
+}
+
+.network-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.address-container {
+  position: relative;
+  margin-top: 8px;
+}
+
+.address-card {
+  position: relative;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.address-card.dark-mode {
+  background: #444;
+  border-color: #303030;
+}
+
+.address-text {
+  padding: 12px;
+  padding-right: 40px;
+  border-radius: 4px;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 14px;
+  background: rgba(157, 255, 0, 0.1) !important;
+  color: rgba(0, 0, 0, 0.88) !important;
+  border: 1px solid #9dff00 !important;
+}
+
+.memo-text {
+  padding: 12px;
+  padding-right: 40px;
+  border-radius: 4px;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 14px;
+  background: rgba(157, 255, 0, 0.1) !important;
+  color: rgba(0, 0, 0, 0.88) !important;
+  border: 1px solid #9dff00 !important;
+}
+
+.dark .memo-text,
+.dark-mode .memo-text,
+.dark .address-text,
+.dark-mode .address-text {
+  color: #fff !important;
+  background: rgba(157, 255, 0, 0.1) !important;
+  border: 1px solid #9dff00 !important;
+}
+
+.copy-button {
+  position: absolute !important;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.copy-button.dark-mode {
+  color: #ccc;
+}
+
+.copy-button:hover {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+}
+
+.copy-button.dark-mode:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.coming-soon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 64px);
+  background: #fff;
+  padding: 24px;
+}
+
+.coming-soon-container.dark-mode {
+  background: #141414;
+}
+
+.coming-soon-content {
+  text-align: center;
+  padding: 48px;
+}
+
+.exchange-logo {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 24px;
+}
+
+.theme-switch {
+  background: #141414 !important;
+}
+
+.theme-switch.ant-switch-checked {
+  background: #9dff00 !important;
+}
+
+.theme-switch .ant-switch-handle::before {
+  background: #fff !important;
+}
+
+.theme-switch .anticon {
+  color: #fff;
+  font-size: 12px;
+}
+
+.theme-switch.ant-switch-checked .anticon {
+  color: #000;
+}
+
+.dark-mode .theme-switch {
+  background: #303030 !important;
+}
+
+.dark-mode .theme-switch.ant-switch-checked {
+  background: #9dff00 !important;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .header {
+    padding: 12px;
+    gap: 12px;
+    height: auto;
+  }
+
+  .content {
+    margin-top: 140px;
+    padding: 16px;
+  }
+
+  .logo {
+    min-width: auto;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+
+  .logo-text {
+    font-size: 18px !important;
+  }
+
+  .header-right {
+    order: 2;
+    margin-left: 0;
+  }
+
+  .exchange-tabs {
+    margin: 0;
+    min-width: 100%;
+    order: 3;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .dark-mode .exchange-tabs {
+    border-top-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .search-container {
+    margin-top: 0;
+    padding: 20px;
+  }
+
+  .search-actions {
+    gap: 16px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input-wrapper {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .search-input {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .action-button {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: visible;
+  }
+
+  .action-button .anticon {
+    margin-right: 4px;
+  }
+
+  .total-tokens {
+    width: 100%;
+    text-align: left;
+    padding: 4px 0;
+  }
+}
+
+/* Animation for loading states */
+.ant-spin {
+  transition: all 0.3s;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+::-webkit-scrollbar-track.dark-mode {
+  background: #333;
+}
+
+::-webkit-scrollbar-thumb.dark-mode {
+  background: #555;
+}
+
+::-webkit-scrollbar-thumb.dark-mode:hover {
+  background: #777;
+}
+
+/* 按钮基础样式 */
+.ant-btn {
+  transition: all 0.3s ease;
+}
+
+.ant-btn:hover {
+  border-color: #9dff00 !important;
+  color: #9dff00 !important;
+}
+
+/* 主题色按钮 */
+.ant-btn-primary {
+  background-color: #9dff00 !important;
+  border-color: #9dff00 !important;
+  color: #000 !important;
+}
+
+.ant-btn-primary:hover,
+.ant-btn-primary:focus {
+  background-color: #9dff00 !important;
+  border-color: #9dff00 !important;
+  opacity: 0.9;
+  color: #000 !important;
+}
+
+/* 确保暗黑模式下按钮颜色一致 */
+.dark .ant-btn {
+  border-color: #303030;
+}
+
+.dark .ant-btn:hover {
+  border-color: #9dff00 !important;
+  color: #9dff00 !important;
+}
+
+.dark .ant-btn-primary {
+  background-color: #9dff00 !important;
+  border-color: #9dff00 !important;
+  color: #000 !important;
+}
+
+.dark .ant-btn-primary:hover,
+.dark .ant-btn-primary:focus {
+  opacity: 0.9;
+  color: #000 !important;
+}
+
+/* 搜索和刷新按钮样式 */
+.search-input .ant-input-affix-wrapper {
+  border-color: #9dff00 !important;
+}
+
+.search-input .ant-input-affix-wrapper:hover,
+.search-input .ant-input-affix-wrapper-focused {
+  border-color: #9dff00 !important;
+  box-shadow: none !important;
+}
+
+.search-input .ant-input-group-addon {
+  background-color: #9dff00 !important;
+  border-color: #9dff00 !important;
+}
+
+.search-input .ant-input-search-button {
+  background-color: #9dff00 !important;
+  border-color: #9dff00 !important;
+  color: #000 !important;
+}
+
+.search-input .ant-input-search-button:hover {
+  opacity: 0.9;
+}
+
+.search-input .ant-input-search-button .anticon {
+  color: #000 !important;
+}
+
+.dark .search-input .ant-input-affix-wrapper {
+  background-color: #141414;
+  border-color: #9dff00 !important;
+  color: #fff;
+}
+
+.dark .search-input .ant-input-affix-wrapper .ant-input {
+  background-color: #141414;
+  color: #fff;
+}
+
+/* 移除 focus 时的蓝色边框 */
+.search-input .ant-input:focus {
+  box-shadow: none !important;
+}
+
+/* Alert 样式 */
+.ant-alert-info {
+  background: rgba(157, 255, 0, 0.1) !important;
+  border-color: #9dff00 !important;
+}
+
+.ant-alert-info .ant-alert-message {
+  color: rgba(0, 0, 0, 0.88) !important;
+}
+
+.dark .ant-alert-info .ant-alert-message {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.ant-alert-info .anticon {
+  color: #9dff00 !important;
+}
