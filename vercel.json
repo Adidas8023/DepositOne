@@ -28,7 +28,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/frontend/build/$1"
+      "destination": "/frontend/build/index.html"
     }
   ],
   "headers": [
@@ -37,7 +37,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.binance.com https://vercel.live;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.binance.com https://vercel.live; frame-src 'self' https://vercel.live;"
         }
       ]
     }
