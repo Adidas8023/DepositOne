@@ -15,6 +15,10 @@
   ],
   "rewrites": [
     {
+      "source": "/favicon.ico",
+      "destination": "/frontend/build/favicon.ico"
+    },
+    {
       "source": "/manifest.json",
       "destination": "/frontend/build/manifest.json"
     },
