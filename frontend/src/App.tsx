@@ -35,6 +35,7 @@ import {
 import axios from 'axios';
 import debounce from 'lodash.debounce'; // 引入 debounce 函数
 import './App.css';
+import config from './config';
 
 const { Header, Content } = Layout;
 const { Search } = Input;
@@ -107,7 +108,7 @@ const App: React.FC = () => {
 
   // 创建一个全局的 axios 实例
   const api = axios.create({
-    baseURL: 'http://localhost:3001/api'
+    baseURL: config.apiBaseUrl
   });
 
   // 更新 API 实例的 headers

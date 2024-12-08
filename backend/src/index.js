@@ -39,6 +39,15 @@ const generateSignature = (queryString) => {
 app.use(cors());
 app.use(express.json());
 
+// 添加安全头
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.binance.com https://vercel.live;"
+  );
+  next();
+});
+
 // 记录所有请求
 app.use((req, res, next) => {
   logToFile('REQUEST', `${req.method} ${req.url}`);
