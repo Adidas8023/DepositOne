@@ -1,5 +1,7 @@
 # 🌟 DepositOne 
 ### Your Universal Crypto Deposit Assistant | 统一加密货币充值助手
+![CleanShot 2024-12-12 at 23 44 17@2x](https://github.com/user-attachments/assets/9da7a3d8-e8bb-4b53-8253-fa2e00a21c63)
+
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
