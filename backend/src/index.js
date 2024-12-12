@@ -1,16 +1,22 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const axios = require('axios');
-const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const binanceAPI = require('./binance');
+const okxAPI = require('./okx');
+const bitgetAPI = require('./bitget');
 
-// 创建日志目录
+// 创建日志目录并清空日志文件
 const logDir = path.join(__dirname, '../logs');
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
 }
+
+// 清空日志文件
+fs.writeFileSync(path.join(logDir, 'app.log'), '');
+fs.writeFileSync(path.join(logDir, 'bitget.log'), '');
+fs.writeFileSync(path.join(logDir, 'okx.log'), '');
 
 // 日志函数
 const logToFile = (type, message) => {
@@ -22,31 +28,9 @@ const logToFile = (type, message) => {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// 币安 API 配置
-const BINANCE_API_KEY = process.env.BINANCE_API_KEY;
-const BINANCE_API_SECRET = process.env.BINANCE_API_SECRET;
-const BINANCE_API_URL = 'https://api.binance.com';
-
-// 生成签名
-const generateSignature = (queryString) => {
-  return crypto
-    .createHmac('sha256', BINANCE_API_SECRET)
-    .update(queryString)
-    .digest('hex');
-};
-
 // 配置中间件
 app.use(cors());
 app.use(express.json());
-
-// 添加安全头
-app.use((req, res, next) => {
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.binance.com https://vercel.live;"
-  );
-  next();
-});
 
 // 记录所有请求
 app.use((req, res, next) => {
@@ -54,79 +38,41 @@ app.use((req, res, next) => {
   next();
 });
 
-// 存储代币信息的缓存
-let tokenCache = null;
-let lastCacheTime = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5分钟缓存
-
-// 获取所有代币信息
-app.get('/api/tokens', async (req, res) => {
+// 获取所有交易所的代币信息
+app.get('/api/tokens/:exchange', async (req, res) => {
   try {
-    logToFile('INFO', 'Fetching tokens...');
-    
-    // 检查缓存是否有效
-    if (tokenCache && lastCacheTime && (Date.now() - lastCacheTime < CACHE_DURATION)) {
-      logToFile('INFO', 'Returning cached tokens');
-      return res.json(tokenCache);
+    const { exchange } = req.params;
+    let result;
+    let fetchTime = new Date().toISOString();
+
+    switch (exchange.toLowerCase()) {
+      case 'binance':
+        result = await binanceAPI.getAllTokens(logToFile);
+        res.json({
+          tokens: result.tokens,
+          fetchTime: result.lastCacheTime ? new Date(result.lastCacheTime).toISOString() : fetchTime,
+          fromCache: result.fromCache || false
+        });
+        break;
+      case 'okx':
+        result = await okxAPI.getAllTokens();
+        res.json({
+          tokens: result,
+          fetchTime,
+          fromCache: false
+        });
+        break;
+      case 'bitget':
+        result = await bitgetAPI.getAllTokens();
+        res.json({
+          tokens: result,
+          fetchTime,
+          fromCache: false
+        });
+        break;
+      default:
+        return res.status(400).json({ error: 'Unsupported exchange' });
     }
-
-    logToFile('INFO', 'Calling Binance API...');
-    
-    // 准备请求参数
-    const timestamp = Date.now();
-    const queryString = `timestamp=${timestamp}&recvWindow=60000`;
-    const signature = generateSignature(queryString);
-    
-    // 获取所有币种信息
-    const response = await axios({
-      method: 'GET',
-      url: `${BINANCE_API_URL}/sapi/v1/capital/config/getall`,
-      headers: {
-        'X-MBX-APIKEY': BINANCE_API_KEY
-      },
-      params: {
-        timestamp,
-        signature,
-        recvWindow: 60000
-      }
-    });
-
-    const coinInfo = response.data;
-    
-    logToFile('API_RESPONSE', {
-      status: 'success',
-      data: coinInfo
-    });
-    
-    if (!coinInfo || !Array.isArray(coinInfo)) {
-      throw new Error(`Invalid API response: ${JSON.stringify(coinInfo)}`);
-    }
-
-    const tokens = coinInfo
-      .filter(coin => !coin.isLegalMoney)
-      .map(coin => ({
-        symbol: coin.coin,
-        name: coin.name,
-        networks: (coin.networkList || [])
-          .filter(network => network.depositEnable)
-          .map(network => ({
-            network: network.network,
-            isDefault: network.isDefault,
-            depositDesc: network.depositDesc,
-            minConfirm: network.minConfirm,
-            depositEnable: network.depositEnable
-          }))
-      }))
-      .filter(token => token.networks.length > 0);
-
-    logToFile('INFO', `Processed ${tokens.length} tokens`);
-    logToFile('DEBUG', 'First token example:', tokens[0]);
-
-    // 更新缓存
-    tokenCache = tokens;
-    lastCacheTime = Date.now();
-
-    res.json(tokens);
   } catch (error) {
     logToFile('ERROR', {
       message: error.message,
@@ -149,45 +95,26 @@ app.get('/api/tokens', async (req, res) => {
 });
 
 // 获取充值地址
-app.get('/api/deposit-address/:coin/:network', async (req, res) => {
+app.get('/api/deposit-address/:exchange/:coin/:network', async (req, res) => {
   try {
-    const { coin, network } = req.params;
-    
-    // 准备请求参数
-    const timestamp = Date.now();
-    const queryString = `coin=${coin}&network=${network}&timestamp=${timestamp}&recvWindow=60000`;
-    const signature = generateSignature(queryString);
-    
-    // 获取充值地址
-    const response = await axios({
-      method: 'GET',
-      url: `${BINANCE_API_URL}/sapi/v1/capital/deposit/address`,
-      headers: {
-        'X-MBX-APIKEY': BINANCE_API_KEY
-      },
-      params: {
-        coin,
-        network,
-        timestamp,
-        signature,
-        recvWindow: 60000
-      }
-    });
+    const { exchange, coin, network } = req.params;
+    let depositAddress;
 
-    const depositAddress = response.data;
-    
-    logToFile('API_RESPONSE', depositAddress);
-    
-    if (!depositAddress || !depositAddress.address) {
-      return res.status(404).json({ error: 'Deposit address not found' });
+    switch (exchange.toLowerCase()) {
+      case 'binance':
+        depositAddress = await binanceAPI.getDepositAddress(coin, network, logToFile);
+        break;
+      case 'okx':
+        depositAddress = await okxAPI.getDepositAddress(coin, network);
+        break;
+      case 'bitget':
+        depositAddress = await bitgetAPI.getDepositAddress(coin, network);
+        break;
+      default:
+        return res.status(400).json({ error: 'Unsupported exchange' });
     }
 
-    res.json({
-      address: depositAddress.address,
-      tag: depositAddress.tag,
-      network: depositAddress.network,
-      coin: depositAddress.coin
-    });
+    res.json(depositAddress);
   } catch (error) {
     logToFile('ERROR', {
       message: error.message,
