@@ -1,5 +1,7 @@
 # 🌟 DepositOne - 统一加密货币充值助手
 
+[English](README.md)
+
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![React](https://img.shields.io/badge/React-18.x-61dafb)
