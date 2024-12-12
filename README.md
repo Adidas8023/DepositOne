@@ -1,6 +1,9 @@
 # 🌟 DepositOne - Your Universal Crypto Deposit Assistant
 
-![DepositOne Banner](https://img.shields.io/badge/DepositOne-Making%20Crypto%20Deposits%20Easy-brightgreen)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![React](https://img.shields.io/badge/React-18.x-61dafb)
+![TypeScript](https://img.shields.io/badge/TypeScript-4.x-blue)
 
 ## 🚀 What is DepositOne?
 
@@ -21,28 +24,29 @@ DepositOne is your one-stop solution for managing cryptocurrency deposits across
   - Dark/Light theme with smooth transitions
   - Intuitive token search and filtering
 
-- 🛡️ **Security First**
-  - Secure API key management
-  - No private key storage
-  - Client-side processing
+- 🛡️ **Security & Performance**
+  - No API keys required
+  - Local caching for better performance
+  - Real-time network status
 
 - 🔍 **Smart Search**
   - Instant token search
   - Network compatibility checking
-  - Popular tokens quick access
+  - Quick access to preset popular tokens (BTC, ETH, USDT, etc.)
 
 ## 🛠️ Tech Stack
 
 - **Frontend**:
   - React with TypeScript
   - Ant Design Components
-  - CSS3 with modern features
+  - Axios for API requests
   - Responsive design principles
 
 - **Backend**:
   - Node.js
   - Express
   - RESTful API architecture
+  - Cache management
 
 ## 🚦 Getting Started
 
@@ -65,9 +69,23 @@ DepositOne is your one-stop solution for managing cryptocurrency deposits across
 
 3. **Configure Environment**
    ```bash
-   # Create .env file in backend directory
-   cp .env.example .env
-   # Edit .env with your settings
+   # Create .env file in backend directory with following content:
+   # Server port configuration
+   PORT=3001
+   
+   # Cache configuration (optional)
+   # Currently only Binance API responses are cached
+   CACHE_DURATION=300000  # Binance API cache duration in milliseconds
+   
+   # Exchange API configuration (if needed)
+   # BINANCE_API_KEY=your_binance_api_key
+   # BINANCE_API_SECRET=your_binance_api_secret
+   # OKX_API_KEY=your_okx_api_key
+   # OKX_API_SECRET=your_okx_api_secret
+   # OKX_PASSPHRASE=your_okx_passphrase
+   # BITGET_API_KEY=your_bitget_api_key
+   # BITGET_API_SECRET=your_bitget_api_secret
+   # BITGET_PASSPHRASE=your_bitget_passphrase
    ```
 
 4. **Start Development Servers**
@@ -76,7 +94,7 @@ DepositOne is your one-stop solution for managing cryptocurrency deposits across
    npm start
 
    # Start backend (from backend directory)
-   npm start
+   npm run dev
    ```
 
 5. **Access the Application**
@@ -85,20 +103,20 @@ DepositOne is your one-stop solution for managing cryptocurrency deposits across
 
 ## 🎯 Usage
 
-1. **Configure Exchange API**
-   - Click the ⚙️ settings icon
-   - Enter your exchange API credentials
-   - Save configuration
+1. **Select Exchange**
+   - Choose your preferred exchange from the top navigation
+   - Currently supports Binance, OKX, and Bitget
 
 2. **Search for Tokens**
    - Use the search bar to find tokens
    - Browse popular tokens section
-   - Filter by network compatibility
+   - View supported networks for each token
 
 3. **Generate Deposit Address**
    - Select your desired token
    - Choose the network
    - Copy the generated address and memo (if required)
+   - Verify network status before depositing
 
 ## 🎨 Themes
 
@@ -107,7 +125,7 @@ DepositOne comes with two beautiful themes:
 - 🌞 **Light Theme**: Clean, professional look for daytime use
 - 🌙 **Dark Theme**: Easy on the eyes for night owls
 
-Toggle between themes using the stylish theme switch in the header!
+Theme automatically adapts to system preferences and can be toggled via the switch in header
 
 ## 📱 Mobile Support
 
@@ -117,34 +135,44 @@ DepositOne is fully responsive and works great on:
 - 💻 Desktops
 - 🖥️ Large Displays
 
-## 🤝 Contributing
+## 🤝 Development
 
-We love contributions! Here's how you can help:
+Project Structure:
+```
++ deposit-one/
++ ├ frontend/              # React TypeScript frontend
++ │   ├── src/
++ │   │   ├── App.tsx       # Main application component
++ │   │   └── App.css       # Styles
++ │   └── package.json
++ │
++ ├── backend/              # Node.js backend
++ │   ├── src/
++ │   │   ├── index.js     # Entry point
++ │   │   ├── binance.js   # Binance API integration
++ │   │   ├── okx.js       # OKX API integration
++ │   │   └── bitget.js    # Bitget API integration
++ │   ├── logs/            # Application logs
++ │   │   ├── app.log      # General application logs
++ │   │   ├── bitget.log   # Bitget specific logs
++ │   │   └── okx.log      # OKX specific logs
++ │   └── package.json
++ ```
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
+## 🐛 Known Issues
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 💖 Support
-
-If you find DepositOne helpful, please consider:
-- ⭐ Starring the repository
-- 🐛 Reporting bugs
-- 💡 Suggesting new features
-- 🤝 Contributing to the code
+- Huobi integration is currently disabled
+- Some networks may show delayed status updates
+- Mobile layout optimization in progress
+- API errors are logged in backend/logs/app.log
+- Exchange-specific errors are logged in their respective log files
 
 ## 🙋‍♂️ Need Help?
 
-- 📖 Check our [Documentation](docs/README.md)
-- 🤔 Open an [Issue](https://github.com/yourusername/deposit-one/issues)
-- 💬 Join our [Community Discord](https://discord.gg/deposit-one)
+- Check the project structure above
+- Review the configuration section
+- Ensure all dependencies are installed
 
 ---
 
-Made with ❤️ by the DepositOne Team
+Made with ❤️ for the Crypto Community

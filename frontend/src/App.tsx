@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   Layout, 
   Input, 
-  List, 
   Card, 
   Button, 
   Modal, 
@@ -10,10 +9,8 @@ import {
   Typography, 
   Space, 
   Tag, 
-  Form,
   ConfigProvider,
   theme,
-  Select,
   Row,
   Col,
   Alert,
@@ -23,33 +20,28 @@ import {
 import { 
   ReloadOutlined, 
   CopyOutlined, 
-  SearchOutlined, 
-  InfoCircleOutlined, 
   FireOutlined,
-  SettingOutlined,
   WalletOutlined,
-  BulbOutlined,
   SunOutlined,
-  MoonOutlined
+  MoonOutlined,
+  LockOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import debounce from 'lodash.debounce'; // 引入 debounce 函数
 import './App.css';
-import config from './config';
 
 const { Header, Content } = Layout;
-const { Search } = Input;
 const { Text, Title } = Typography;
-const { TabPane } = Tabs;
 
 interface Network {
   network: string;
-  address: string;
+  address?: string;
   tag?: string;
   isDefault?: boolean;
   depositDesc: string;
   minConfirm: number;
   depositEnable: boolean;
+  needTag?: boolean;
 }
 
 interface Token {
@@ -58,37 +50,27 @@ interface Token {
   networks: Network[];
 }
 
-interface NetworkInfo {
-  network: string;
-  address: string;
-  tag?: string;
-}
-
-interface ApiConfig {
-  apiKey: string;
-  apiSecret: string;
+interface ApiResponse {
+  tokens: Token[];
+  fetchTime: string;
+  fromCache: boolean;
 }
 
 const App: React.FC = () => {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
   const [selectedNetwork, setSelectedNetwork] = useState('');
-  const [networks, setNetworks] = useState<Network[]>([]);
   const [depositAddress, setDepositAddress] = useState('');
   const [depositTag, setDepositTag] = useState('');
-  const [apiConfigModalVisible, setApiConfigModalVisible] = useState(false);
-  const [apiConfig, setApiConfig] = useState<ApiConfig>(() => {
-    const savedConfig = localStorage.getItem('apiConfig');
-    return savedConfig ? JSON.parse(savedConfig) : null;
-  });
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
   const [searchText, setSearchText] = useState('');
   const [selectedExchange, setSelectedExchange] = useState('Binance');
+  const [lastFetchTime, setLastFetchTime] = useState<string>('');
+  const [isFromCache, setIsFromCache] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -103,48 +85,30 @@ const App: React.FC = () => {
     setIsDarkMode(!isDarkMode);
   };
 
-  // API 配置表单
-  const [form] = Form.useForm();
-
-  // 创建一个全局的 axios 实例
-  const api = axios.create({
-    baseURL: config.apiBaseUrl
-  });
-
-  // 更新 API 实例的 headers
-  const updateApiHeaders = useCallback((config: ApiConfig) => {
-    if (config) {
-      api.defaults.headers.common['X-API-KEY'] = config.apiKey;
-      api.defaults.headers.common['X-API-SECRET'] = config.apiSecret;
-    }
-  }, []);
+  // 使用 useMemo 创建 axios 实例
+  const api = useMemo(() => axios.create({
+    baseURL: 'http://localhost:3001/api'
+  }), []); // 空依赖数组，因为 baseURL 是常量
 
   // 获取代币列表
   const fetchTokens = useCallback(async () => {
-    if (!apiConfig) {
-      setApiConfigModalVisible(true);
-      return;
-    }
-
     try {
       setLoading(true);
-      const response = await api.get('/tokens');
-      const sortedTokens = response.data.sort((a: Token, b: Token) => 
+      const response = await api.get(`/tokens/${selectedExchange.toLowerCase()}`);
+      const data: ApiResponse = response.data;
+      const sortedTokens = data.tokens.sort((a: Token, b: Token) => 
         a.symbol.localeCompare(b.symbol)
       );
       setTokens(sortedTokens);
+      setLastFetchTime(data.fetchTime);
+      setIsFromCache(data.fromCache);
     } catch (error) {
       console.error('Error fetching tokens:', error);
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
-        message.error('Invalid API credentials. Please check your API configuration.');
-        setApiConfigModalVisible(true);
-      } else {
-        message.error('Failed to fetch tokens');
-      }
+      message.error('Failed to fetch tokens');
     } finally {
       setLoading(false);
     }
-  }, [apiConfig]);
+  }, [selectedExchange, api]);
 
   // 刷新按钮点击处理
   const handleRefresh = useCallback(() => {
@@ -154,20 +118,8 @@ const App: React.FC = () => {
 
   // 初始加载和API配置更新时获取数据
   useEffect(() => {
-    if (apiConfig) {
-      fetchTokens();
-    }
-  }, [apiConfig, fetchTokens]);
-
-  // 只在组件挂载时加载配置
-  useEffect(() => {
-    const savedConfig = localStorage.getItem('apiConfig');
-    if (savedConfig) {
-      const config = JSON.parse(savedConfig);
-      setApiConfig(config);
-      updateApiHeaders(config);
-    }
-  }, []); // 移除 updateApiHeaders 依赖
+    fetchTokens();
+  }, [fetchTokens]);
 
   // 热门代币列表（这里是示例，实际应该从后端获取）
   const popularTokens = [
@@ -189,7 +141,7 @@ const App: React.FC = () => {
       token.symbol.toLowerCase() === searchLower
     );
 
-    // 如果搜索词是 symbol 的开头，次优先显示
+    // 果搜索词是 symbol 的开头，次优先显示
     const startWithSymbolMatches = tokens.filter(token => 
       token.symbol.toLowerCase().startsWith(searchLower) &&
       !exactSymbolMatches.includes(token)
@@ -224,13 +176,13 @@ const App: React.FC = () => {
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchText(value); // 立即更新输入框的值
-    debouncedSearch(value); // 防抖处理实际的搜索
+    debouncedSearch(value); // 防抖处理实际索
   }, [debouncedSearch]);
 
-  // 获取充值地址
+  // 取充值地址
   const getDepositAddress = async (coin: string, network: string) => {
     try {
-      const response = await api.get(`/deposit-address/${coin}/${network}`);
+      const response = await api.get(`/deposit-address/${selectedExchange.toLowerCase()}/${coin}/${network}`);
       return response.data;
     } catch (error) {
       console.error('Error getting deposit address:', error);
@@ -242,7 +194,6 @@ const App: React.FC = () => {
   // 处理代币选择
   const handleTokenSelect = (token: Token) => {
     setSelectedToken(token);
-    setNetworks(token.networks);
     setModalVisible(true);
     setSelectedNetwork('');
     setDepositAddress('');
@@ -251,16 +202,24 @@ const App: React.FC = () => {
 
   // 处理网络选择
   const handleNetworkSelect = async (network: string) => {
-    if (selectedToken) {
-      setSelectedNetwork(network);
+    if (!selectedToken || !network) {
+      message.error('Please select a valid network');
+      return;
+    }
+
+    setSelectedNetwork(network);
+    setDepositAddress('');
+    setDepositTag('');
+
+    try {
       const result = await getDepositAddress(selectedToken.symbol, network);
       if (result) {
         setDepositAddress(result.address);
         setDepositTag(result.tag || '');
-      } else {
-        setDepositAddress('');
-        setDepositTag('');
       }
+    } catch (error) {
+      console.error('Error getting deposit address:', error);
+      message.error('Failed to get deposit address. Please try again.');
     }
   };
 
@@ -276,24 +235,85 @@ const App: React.FC = () => {
     message.success('Memo/Tag copied to clipboard');
   };
 
-  const handleApiConfigSubmit = async (values: ApiConfig) => {
-    try {
-      // 更新 API headers
-      updateApiHeaders(values);
-      
-      // 保存配置
-      setApiConfig(values);
-      localStorage.setItem('apiConfig', JSON.stringify(values));
-      message.success('API configuration saved successfully');
-      setApiConfigModalVisible(false);
-      
-      // 使用新的配置获取数据
-      await fetchTokens();
-    } catch (error) {
-      console.error('Error saving API config:', error);
-      message.error('Failed to save API configuration');
-    }
-  };
+  // 提取 Token Card 属性为一个函数以减少重复代码
+  const tokenCardProps = (token: Token) => ({
+    hoverable: true,
+    style: {
+      height: '100%',
+      background: isDarkMode ? '#141414' : undefined,
+      border: isDarkMode ? '1px solid #303030' : undefined,
+      transition: 'all 0.3s ease'
+    },
+    onClick: () => handleTokenSelect(token),
+    className: `token-card ${isDarkMode ? 'dark-mode' : ''}`,
+    children: (
+      <div style={{ 
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        gap: '8px'
+      }}>
+        <div style={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px'
+        }}>
+          <Text strong style={{ 
+            fontSize: '16px',
+            margin: 0,
+            color: isDarkMode ? '#fff' : '#000'
+          }}>
+            {token.symbol}
+          </Text>
+          <Text style={{ 
+            fontSize: '14px',
+            color: isDarkMode ? '#888' : '#666',
+            display: 'block'
+          }}>
+            {token.name}
+          </Text>
+        </div>
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '4px',
+          marginTop: 'auto'
+        }}>
+          {token.networks
+            .sort((a, b) => {
+              if (a.isDefault && !b.isDefault) return -1;
+              if (!a.isDefault && b.isDefault) return 1;
+              return 0;
+            })
+            .slice(0, 4)
+            .map((network) => (
+              <Tag 
+                key={network.network}
+                color="default"
+                style={{ 
+                  margin: 0,
+                  borderRadius: '4px'
+                }}
+              >
+                {network.network}
+              </Tag>
+            ))}
+          {token.networks.length > 4 && (
+            <Tag 
+              style={{ 
+                margin: 0,
+                borderRadius: '4px',
+                backgroundColor: isDarkMode ? '#303030' : '#f0f0f0',
+                color: isDarkMode ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)'
+              }}
+            >
+              +{token.networks.length - 4}
+            </Tag>
+          )}
+        </div>
+      </div>
+    )
+  });
 
   return (
     <ConfigProvider
@@ -321,7 +341,12 @@ const App: React.FC = () => {
               { label: 'Binance', key: 'Binance' },
               { label: 'OKX', key: 'OKX' },
               { label: 'Bitget', key: 'Bitget' },
-              { label: 'Huobi', key: 'Huobi' },
+              { 
+                label: 'Huobi', 
+                key: 'Huobi',
+                disabled: true,
+                icon: <LockOutlined />
+              },
             ]}
           />
           <div className="header-right">
@@ -332,369 +357,182 @@ const App: React.FC = () => {
               unCheckedChildren={<MoonOutlined />}
               className="theme-switch"
             />
-            <Button
-              type="text"
-              icon={<SettingOutlined />}
-              onClick={() => setApiConfigModalVisible(true)}
-              className="setting-button"
-            />
           </div>
         </Header>
 
         {/* 主要内容区域 */}
         <Content className={`content ${isDarkMode ? 'dark-mode' : ''}`}>
-          {/* API 配置弹窗 */}
-          <Modal
-            title="API Configuration"
-            open={apiConfigModalVisible}
-            onCancel={() => setApiConfigModalVisible(false)}
-            footer={null}
-          >
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={handleApiConfigSubmit}
-            >
-              <Form.Item
-                label={
-                  <span style={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)' }}>
-                    API Key
-                  </span>
-                }
-                name="apiKey"
-                rules={[{ required: true, message: 'Please input your API key!' }]}
-              >
-                <Input.Password placeholder="Enter your API key" />
-              </Form.Item>
-
-              <Form.Item
-                label={
-                  <span style={{ color: isDarkMode ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)' }}>
-                    API Secret
-                  </span>
-                }
-                name="apiSecret"
-                rules={[{ required: true, message: 'Please input your API secret!' }]}
-              >
-                <Input.Password placeholder="Enter your API secret" />
-              </Form.Item>
-
-              <Form.Item>
-                <Button type="primary" htmlType="submit" block>
-                  Save Configuration
-                </Button>
-              </Form.Item>
-            </Form>
-          </Modal>
-
-          {selectedExchange === 'Binance' ? (
-            <>
-              <div className={`search-container ${isDarkMode ? 'dark-mode' : ''}`}>
-                <div className="search-actions">
-                  <div className="search-input-wrapper">
-                    <Input.Search
-                      placeholder="Search tokens by name or symbol..."
-                      onChange={handleSearchChange}
-                      value={searchText}
-                      allowClear
-                      className={`search-input ${isDarkMode ? 'dark-mode' : ''}`}
-                      enterButton
-                    />
-                  </div>
-                  <Button
-                    icon={<ReloadOutlined />}
-                    onClick={handleRefresh}
-                    className="action-button"
-                    loading={loading}
-                  >
-                    Refresh
-                  </Button>
-                  <Text className="total-tokens" style={{ 
-                    color: isDarkMode ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.45)'
-                  }}>
-                    Total tokens: {filteredTokens.length}
-                  </Text>
-                </div>
-              </div>
-
-              {/* 热门代币推荐区域 */}
-              {!searchText && (
-                <div className="popular-tokens-container" style={{ background: isDarkMode ? '#141414' : '#fff' }}>
-                  <Title level={4} style={{ marginBottom: 16 }}>
-                    <FireOutlined style={{ marginRight: 8, color: '#ff4d4f' }} />
-                    You Might Wanna Deposit
-                  </Title>
-                  <Row gutter={[16, 16]}>
-                    {getPopularTokens().map((token) => (
-                      <Col xs={24} sm={12} md={8} lg={6} xl={3} key={token.symbol}>
-                        <Card
-                          hoverable
-                          style={{
-                            height: '100%',
-                            background: isDarkMode ? '#141414' : undefined,
-                            border: isDarkMode ? '1px solid #303030' : undefined,
-                            transition: 'all 0.3s ease'
-                          }}
-                          onClick={() => handleTokenSelect(token)}
-                          className={`token-card ${isDarkMode ? 'dark-mode' : ''}`}
-                        >
-                          <div style={{ 
-                            display: 'flex',
-                            flexDirection: 'column',
-                            height: '100%',
-                            gap: '8px'
-                          }}>
-                            <div style={{ 
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '8px'
-                            }}>
-                              <Text strong style={{ 
-                                fontSize: '16px',
-                                margin: 0,
-                                color: isDarkMode ? '#fff' : '#000'
-                              }}>
-                                {token.symbol}
-                              </Text>
-                              <Text style={{ 
-                                fontSize: '14px',
-                                color: isDarkMode ? '#888' : '#666',
-                                display: 'block'
-                              }}>
-                                {token.name}
-                              </Text>
-                            </div>
-                            <div style={{
-                              display: 'flex',
-                              flexWrap: 'wrap',
-                              gap: '4px',
-                              marginTop: 'auto'
-                            }}>
-                              {token.networks
-                                .sort((a, b) => {
-                                  // 确保默认网络排在最前面
-                                  if (a.isDefault && !b.isDefault) return -1;
-                                  if (!a.isDefault && b.isDefault) return 1;
-                                  return 0;
-                                })
-                                .slice(0, 4)
-                                .map((network) => (
-                                  <Tag 
-                                    key={network.network}
-                                    color="default"
-                                    style={{ 
-                                      margin: 0,
-                                      borderRadius: '4px'
-                                    }}
-                                  >
-                                    {network.network}
-                                  </Tag>
-                                ))}
-                              {token.networks.length > 4 && (
-                                <Tag 
-                                  style={{ 
-                                    margin: 0,
-                                    borderRadius: '4px',
-                                    backgroundColor: isDarkMode ? '#303030' : '#f0f0f0',
-                                    color: isDarkMode ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)'
-                                  }}
-                                >
-                                  +{token.networks.length - 4}
-                                </Tag>
-                              )}
-                            </div>
-                          </div>
-                        </Card>
-                      </Col>
-                    ))}
-                  </Row>
-                </div>
-              )}
-
-              {/* 所有代币列表 */}
-              <div className="all-tokens-container" style={{ background: isDarkMode ? '#141414' : '#fff' }}>
-                <Title level={4} style={{ margin: '24px 0 16px' }}>
-                  {searchText ? 'Search Results' : 'All Tokens'}
-                </Title>
-                <Row gutter={[16, 16]}>
-                  {filteredTokens.map((token) => (
-                    <Col xs={24} sm={12} md={8} lg={6} xl={3} key={token.symbol}>
-                      <Card
-                        hoverable
-                        style={{
-                          height: '100%',
-                          background: isDarkMode ? '#141414' : undefined,
-                          border: isDarkMode ? '1px solid #303030' : undefined,
-                          transition: 'all 0.3s ease'
-                        }}
-                        onClick={() => handleTokenSelect(token)}
-                        className={`token-card ${isDarkMode ? 'dark-mode' : ''}`}
-                      >
-                        <div style={{ 
-                          display: 'flex',
-                          flexDirection: 'column',
-                          height: '100%',
-                          gap: '8px'
-                        }}>
-                          <div style={{ 
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '8px'
-                          }}>
-                            <Text strong style={{ 
-                              fontSize: '16px',
-                              margin: 0,
-                              color: isDarkMode ? '#fff' : '#000'
-                            }}>
-                              {token.symbol}
-                            </Text>
-                            <Text style={{ 
-                              fontSize: '14px',
-                              color: isDarkMode ? '#888' : '#666',
-                              display: 'block'
-                            }}>
-                              {token.name}
-                            </Text>
-                          </div>
-                          <div style={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: '4px',
-                            marginTop: 'auto'
-                          }}>
-                            {token.networks
-                              .sort((a, b) => {
-                                // 确保默认网络排在最前面
-                                if (a.isDefault && !b.isDefault) return -1;
-                                if (!a.isDefault && b.isDefault) return 1;
-                                return 0;
-                              })
-                              .slice(0, 4)
-                              .map((network) => (
-                                <Tag 
-                                  key={network.network}
-                                  color="default"
-                                  style={{ 
-                                    margin: 0,
-                                    borderRadius: '4px'
-                                  }}
-                                >
-                                  {network.network}
-                                </Tag>
-                              ))}
-                            {token.networks.length > 4 && (
-                              <Tag 
-                                style={{ 
-                                  margin: 0,
-                                  borderRadius: '4px',
-                                  backgroundColor: isDarkMode ? '#303030' : '#f0f0f0',
-                                  color: isDarkMode ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)'
-                                }}
-                              >
-                                +{token.networks.length - 4}
-                              </Tag>
-                            )}
-                          </div>
-                        </div>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
-              </div>
-            </>
-          ) : (
-            <div className={`coming-soon-container ${isDarkMode ? 'dark-mode' : ''}`}>
-              <div className="coming-soon-content">
-                <img 
-                  src={`/images/${selectedExchange.toLowerCase()}-logo.svg`} 
-                  alt={`${selectedExchange} Logo`}
-                  className="exchange-logo"
+          <div className={`search-container ${isDarkMode ? 'dark-mode' : ''}`}>
+            <div className="search-actions">
+              <div className="search-input-wrapper">
+                <Input.Search
+                  placeholder={`Search ${selectedExchange} tokens by name or symbol...`}
+                  onChange={handleSearchChange}
+                  value={searchText}
+                  allowClear
+                  className={`search-input ${isDarkMode ? 'dark-mode' : ''}`}
+                  enterButton
                 />
-                <Title level={2}>Coming Soon</Title>
-                <Text>We will integrate {selectedExchange} exchange very soon!</Text>
+              </div>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={handleRefresh}
+                className="action-button"
+                loading={loading}
+              >
+                Refresh
+              </Button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <Text className="total-tokens" style={{ 
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.45)'
+                }}>
+                  Total tokens: {filteredTokens.length}
+                </Text>
+                {lastFetchTime && (
+                  <Text style={{ 
+                    fontSize: '12px',
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.45)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    Last API fetch: {new Date(lastFetchTime).toLocaleString()}
+                    {isFromCache && (
+                      <Tag color="orange" style={{ marginLeft: '4px', fontSize: '10px', lineHeight: '14px' }}>
+                        Cached
+                      </Tag>
+                    )}
+                  </Text>
+                )}
               </div>
             </div>
+          </div>
+
+          {/* 热门代币推荐区域 */}
+          {!searchText && (
+            <div className="popular-tokens-container" style={{ background: isDarkMode ? '#141414' : '#fff' }}>
+              <Title level={4} style={{ marginBottom: 16 }}>
+                <FireOutlined style={{ marginRight: 8, color: '#ff4d4f' }} />
+                Popular {selectedExchange} Tokens
+              </Title>
+              <Row gutter={[16, 16]}>
+                {getPopularTokens().map((token) => (
+                  <Col xs={24} sm={12} md={8} lg={6} xl={3} key={token.symbol}>
+                    <Card {...tokenCardProps(token)} />
+                  </Col>
+                ))}
+              </Row>
+            </div>
           )}
-        </Content>
 
-        {/* 充值地址弹窗 */}
-        <Modal
-          title={selectedToken ? `Deposit ${selectedToken.symbol}` : ''}
-          open={modalVisible}
-          onCancel={() => setModalVisible(false)}
-          footer={[
-            <Button
-              key="submit"
-              type="primary"
-              onClick={() => setModalVisible(false)}
-              className="action-button"
-            >
-              Confirm
-            </Button>,
-          ]}
-          className={`deposit-modal ${isDarkMode ? 'dark-mode' : ''}`}
-        >
-          {selectedToken && (
-            <div>
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ marginBottom: 8 }}>Select Network</div>
-                <Space wrap>
-                  {selectedToken.networks.map(network => (
-                    <Button
-                      key={network.network}
-                      type={selectedNetwork === network.network ? 'primary' : 'default'}
-                      onClick={() => handleNetworkSelect(network.network)}
-                      className={isDarkMode ? 'dark-mode' : ''}
-                    >
-                      {network.network}
-                      {network.isDefault && (
-                        <Tag color="success" style={{ marginLeft: 4 }}>
-                          Default
-                        </Tag>
-                      )}
-                    </Button>
-                  ))}
-                </Space>
-              </div>
+          {/* 所有代币列表 */}
+          <div className="all-tokens-container" style={{ background: isDarkMode ? '#141414' : '#fff' }}>
+            <Title level={4} style={{ margin: '24px 0 16px' }}>
+              {searchText ? 'Search Results' : `All ${selectedExchange} Tokens`}
+            </Title>
+            <Row gutter={[16, 16]}>
+              {filteredTokens.map((token) => (
+                <Col xs={24} sm={12} md={8} lg={6} xl={3} key={token.symbol}>
+                  <Card {...tokenCardProps(token)} />
+                </Col>
+              ))}
+            </Row>
+          </div>
 
-              {selectedNetwork && (
-                <div>
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ marginBottom: 8 }}>Deposit Address</div>
-                    <div className={`address-card ${isDarkMode ? 'dark-mode' : ''}`}>
-                      <div className={`address-text ${isDarkMode ? 'dark-mode' : ''}`}>
-                        {depositAddress}
-                      </div>
+          {/* 充值地址弹窗 */}
+          <Modal
+            title={selectedToken ? `Deposit ${selectedToken.symbol}` : ''}
+            open={modalVisible}
+            onCancel={() => setModalVisible(false)}
+            footer={[
+              <Button
+                key="submit"
+                type="primary"
+                onClick={() => setModalVisible(false)}
+                className="action-button"
+              >
+                Confirm
+              </Button>,
+            ]}
+            className={`deposit-modal ${isDarkMode ? 'dark-mode' : ''}`}
+          >
+            {selectedToken && (
+              <div>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ marginBottom: 8 }}>Select Network</div>
+                  <Space wrap>
+                    {selectedToken.networks.map(network => (
                       <Button
-                        className="copy-button"
-                        type="text"
-                        icon={<CopyOutlined />}
-                        onClick={copyAddress}
-                      />
-                    </div>
-                  </div>
+                        key={network.network}
+                        type={selectedNetwork === network.network ? 'primary' : 'default'}
+                        onClick={() => handleNetworkSelect(network.network)}
+                        className={isDarkMode ? 'dark-mode' : ''}
+                      >
+                        {network.network}
+                        {network.isDefault && (
+                          <Tag color="success" style={{ marginLeft: 4 }}>
+                            Default
+                          </Tag>
+                        )}
+                      </Button>
+                    ))}
+                  </Space>
+                </div>
 
-                  {depositTag && (
-                    <div>
-                      <div style={{ marginBottom: 8 }}>Memo (Required)</div>
+                {selectedNetwork && (
+                  <div>
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ marginBottom: 8 }}>Deposit Address</div>
                       <div className={`address-card ${isDarkMode ? 'dark-mode' : ''}`}>
-                        <div className={`memo-text ${isDarkMode ? 'dark-mode' : ''}`}>
-                          {depositTag}
+                        <div className={`address-text ${isDarkMode ? 'dark-mode' : ''}`}>
+                          {depositAddress}
                         </div>
                         <Button
                           className="copy-button"
                           type="text"
                           icon={<CopyOutlined />}
-                          onClick={copyTag}
+                          onClick={copyAddress}
                         />
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </Modal>
+
+                    {(depositTag || selectedToken?.networks.find(n => n.network === selectedNetwork)?.needTag) && (
+                      <div>
+                        <div style={{ marginBottom: 8 }}>
+                          <Text type={!depositTag ? "danger" : undefined}>
+                            Memo/Tag {!depositTag ? "(Required but not provided)" : "(Required)"}
+                          </Text>
+                        </div>
+                        <div className={`address-card ${isDarkMode ? 'dark-mode' : ''}`}>
+                          <div className={`memo-text ${isDarkMode ? 'dark-mode' : ''}`}>
+                            {depositTag || 'Please contact support to get the correct memo/tag'}
+                          </div>
+                          {depositTag && (
+                            <Button
+                              className="copy-button"
+                              type="text"
+                              icon={<CopyOutlined />}
+                              onClick={copyTag}
+                            />
+                          )}
+                        </div>
+                        {!depositTag && (
+                          <Alert
+                            message="Warning"
+                            description="Depositing without a correct memo/tag may result in loss of funds."
+                            type="warning"
+                            showIcon
+                            style={{ marginTop: 8 }}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </Modal>
+        </Content>
       </Layout>
     </ConfigProvider>
   );
