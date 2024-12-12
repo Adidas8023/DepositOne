@@ -29,3 +29,13 @@ backend/logs/*
 .vscode/
 *.swp
 *.swo
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# But keep example files
+!.env.example

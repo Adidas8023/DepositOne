@@ -53,7 +53,25 @@ cd ../backend
 npm install
 ```
 
-2. **Start Development Servers**
+2. **Configure Environment Variables**
+```bash
+# Frontend configuration
+cd frontend
+cp .env.example .env
+# Edit .env if needed (default values should work)
+
+# Backend configuration
+cd ../backend
+cp .env.example .env
+# Edit .env and add your exchange API keys
+```
+
+Required API Permissions:
+- Binance: Only 'Read Info' permission
+- OKX: Only 'Read' permission
+- Bitget: Only 'Read' permission
+
+3. **Start Development Servers**
 ```bash
 # Start frontend (in frontend directory)
 cd frontend
@@ -132,7 +150,25 @@ cd ../backend
 npm install
 ```
 
-2. **启动开发服务器**
+2. **配置环境变量**
+```bash
+# 前端配置
+cd frontend
+cp .env.example .env
+# 如需要可编辑 .env（默认值通常可直接使用）
+
+# 后端配置
+cd ../backend
+cp .env.example .env
+# 编辑 .env 并添加您的交易所 API 密钥
+```
+
+所需 API 权限：
+- 币安：仅需要"读取信息"权限
+- 欧易：仅需要"读取"权限
+- Bitget：仅需要"读取"权限
+
+3. **启动开发服务器**
 ```bash
 # 启动前端（在 frontend 目录下）
 cd frontend
