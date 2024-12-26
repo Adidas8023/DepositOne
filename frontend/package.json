@@ -4,9 +4,13 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^5.2.6",
-    "antd": "^5.11.1",
+    "@types/node": "^16.18.68",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "antd": "^5.12.2",
     "axios": "^1.6.2",
     "lodash.debounce": "^4.0.8",
+    "qrcode.react": "^3.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
@@ -35,12 +39,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@types/lodash.debounce": "^4.0.9",
-    "@types/node": "^20.x",
-    "@types/react": "^18.2.37",
-    "@types/react-dom": "^18.2.15",
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   }
 }

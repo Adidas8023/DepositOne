@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 # 🌟 DepositOne 
 ### Your Universal Crypto Deposit Assistant | 统一加密货币充值助手
-![CleanShot 2024-12-12 at 23 44 17@2x](https://github.com/user-attachments/assets/9da7a3d8-e8bb-4b53-8253-fa2e00a21c63)
+![DepositOne](./photo.png)
 
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+=======
+# 🌟 DepositOne
+>>>>>>> b4a9a64 (feat: v2.0.0 release)
+
+Your Universal Crypto Deposit Assistant | 统一加密货币充值助手
+
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![React](https://img.shields.io/badge/React-18.x-61dafb)
 ![TypeScript](https://img.shields.io/badge/TypeScript-4.x-blue)
@@ -15,194 +22,188 @@
 <a name="english"></a>
 ## 🚀 What is DepositOne?
 
-DepositOne is a secure, local-first tool that helps you manage deposit addresses across multiple cryptocurrency exchanges in one place. No more switching between different exchange apps!
+DepositOne is a modern web application for managing cryptocurrency deposit addresses across multiple exchanges in one place. Version 2.0 brings a complete redesign and numerous new features!
 
-### ✨ Core Features
+### ✨ New Features (v2.0)
 
-- 🔐 **100% Secure & Local**
-  - Runs completely locally
-  - Only requires read-only API keys
-  - Minimal permissions needed (only deposit addresses)
-  - Open source & auditable
-
-- 🔄 **Multi-Exchange Support**
+- 🎨 Modern UI/UX Design
+- 🌓 Light/Dark Theme Support
+- 📱 Fully Responsive Design
+- 🔍 Enhanced Search Experience
+- 💫 Smooth Animations
+- 🔄 Real-time Data Updates
+- 📷 QR Code Scanning Support
+- 🏢 Multi-Exchange Support:
   - Binance
   - OKX
   - Bitget
-  - More exchanges coming soon!
-  - PRs welcome for new exchange integrations!
+  - HTX (Coming Soon)
+  - Kraken (Coming Soon)
+  - KuCoin (Coming Soon)
+  - Coinbase (Coming Soon)
+  - Gate.io (Coming Soon)
+  - MEXC (Coming Soon)
 
-- 🎯 **Simple & Efficient**
-  - One-click address copy
-  - Quick network selection
-  - Intuitive interface
-  - Dark/Light theme
+### 🛠️ Tech Stack
 
-## 🚦 Quick Start
+- Frontend:
+  - React 18
+  - TypeScript
+  - Ant Design v5
+  - Axios
+  - QR Code Generator
 
-1. **Clone & Install**
+- Backend:
+  - Node.js
+  - Express
+  - Axios
+  - Redis (Caching)
+
+### 🚀 Quick Start
+
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/deposit-one.git
-cd deposit-one
-
-# Install dependencies for frontend
+# Frontend
 cd frontend
 npm install
+npm start
 
-# Install dependencies for backend
-cd ../backend
-npm install
-```
-
-2. **Configure Environment Variables**
-```bash
-# Frontend configuration
-cd frontend
-cp .env.example .env
-# Edit .env if needed (default values should work)
-
-# Backend configuration
-cd ../backend
-cp .env.example .env
-# Edit .env and add your exchange API keys
-```
-
-Required API Permissions:
-- Binance: Only 'Read Info' permission
-- OKX: Only 'Read' permission
-- Bitget: Only 'Read' permission
-
-3. **Start Development Servers**
-```bash
-# Start frontend (in frontend directory)
-cd frontend
-npm start    # Frontend will run on http://localhost:3000
-
-# Open a new terminal and start backend
+# Backend
 cd backend
-npm run dev  # Backend will run on http://localhost:3001
+npm install
+npm start
 ```
 
-3. **Verify Setup**
-- Frontend: Open http://localhost:3000 in your browser
-- You should see the main interface with exchange options
-- Try selecting different exchanges and copying deposit addresses
+### 🔧 Requirements
 
-## 🚦️ Development
+- Node.js >= 16
+- Redis (for backend caching)
 
-Want to contribute? Great!
+### ⚙️ Configuration
 
-1. Fork the repo
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+Frontend (.env):
+```env
+REACT_APP_API_BASE_URL=http://localhost:3001/api
+```
 
-## 🤝 Contributing
+Backend (.env):
+```env
+PORT=3001
+REDIS_URL=redis://localhost:6379
+CACHE_DURATION=300
+```
 
-Contributions are welcome! Especially for:
-- Adding new exchange support
-- UI/UX improvements
-- Bug fixes
-- Documentation
+### 🌟 Key Features
+
+1. Multi-exchange deposit address management
+2. Smart search (token name & symbol)
+3. Quick access to popular tokens
+4. Multi-chain network support
+5. Automatic QR code generation
+6. Dark/Light theme switching
+7. Responsive design for all devices
 
 ---
 
 <a name="chinese"></a>
 ## 🚀 什么是 DepositOne？
 
-DepositOne 是一个安全的本地优先工具，帮助您在一个界面管理多个加密货币交易所的充值地址。告别在不同交易所 App 之间来回切换！
+DepositOne 是一个用于在同一界面管理多个交易所加密货币充值地址的现代化 Web 应用。2.0 版本带来了全新的设计和众多新功能！
 
-### ✨ 核心特性
+### ✨ 新特性 (v2.0)
 
-- 🔐 **100% 安全且本地化**
-  - 完全本地运行
-  - 仅需只读 API 密钥
-  - 最小权限要求（仅用于获取充值地址）
-  - 开源可审计
+- 🎨 全新的现代化 UI 设计
+- 🌓 支持亮色/暗色主题
+- 📱 完全响应式设计
+- 🔍 优化的搜索体验
+- 💫 流畅的动画效果
+- 🔄 实时数据更新
+- 📷 支持二维码扫描
+- 🏢 支持多个主流交易所：
+  - Binance
+  - OKX
+  - Bitget
+  - HTX (即将支持)
+  - Kraken (即将支持)
+  - KuCoin (即将支持)
+  - Coinbase (即将支持)
+  - Gate.io (即将支持)
+  - MEXC (即将支持)
 
-- 🔄 **多交易所支持**
-  - 币安 Binance
-  - 欧易 OKX
-  - 比特币 Bitget
-  - 更多交易所持续接入中！
-  - 欢迎提交 PR 接入新交易所！
+### 🛠️ 技术栈
 
-- 🎯 **简单高效**
-  - 一键复制地址
-  - 快速选择网络
-  - 直观的界面
-  - 明暗主题切换
+- 前端:
+  - React 18
+  - TypeScript
+  - Ant Design v5
+  - Axios
+  - QR Code Generator
 
-## 🚦 快速开始
+- 后端:
+  - Node.js
+  - Express
+  - Axios
+  - Redis (缓存)
 
-1. **克隆并安装**
+### 🚀 快速开始
+
 ```bash
-# 克隆仓库
-git clone https://github.com/yourusername/deposit-one.git
-cd deposit-one
-
-# 安装前端依赖
+# 前端
 cd frontend
 npm install
+npm start
 
-# 安装后端依赖
-cd ../backend
-npm install
-```
-
-2. **配置环境变量**
-```bash
-# 前端配置
-cd frontend
-cp .env.example .env
-# 如需要可编辑 .env（默认值通常可直接使用）
-
-# 后端配置
-cd ../backend
-cp .env.example .env
-# 编辑 .env 并添加您的交易所 API 密钥
-```
-
-所需 API 权限：
-- 币安：仅需要"读取信息"权限
-- 欧易：仅需要"读取"权限
-- Bitget：仅需要"读取"权限
-
-3. **启动开发服务器**
-```bash
-# 启动前端（在 frontend 目录下）
-cd frontend
-npm start    # 前端将运行在 http://localhost:3000
-
-# 打开新终端并启动后端
+# 后端
 cd backend
-npm run dev  # 后端将运行在 http://localhost:3001
+npm install
+npm start
 ```
 
-3. **验证设置**
-- 前端：在浏览器中打开 http://localhost:3000
-- 您应该能看到主界面和交易所选项
-- 尝试选择不同的交易所并复制充值地址
+### 🔧 环境要求
 
-## 🛠️ 开发指南
+- Node.js >= 16
+- Redis (用于后端缓存)
 
-想要贡献代码？非常欢迎！
+### ⚙️ 配置
 
-1. Fork 本仓库
-2. 创建特性分支
-3. 提交更改
-4. 推送到分支
-5. 创建 Pull Request
+前端配置 (.env):
+```env
+REACT_APP_API_BASE_URL=http://localhost:3001/api
+```
 
-## 🤝 参与贡献
+后端配置 (.env):
+```env
+PORT=3001
+REDIS_URL=redis://localhost:6379
+CACHE_DURATION=300
+```
 
-欢迎参与贡献，特别是：
-- 添加新交易所支持
-- 改进用户界面/体验
-- 修复 bug
-- 完善文档
+### 🌟 主要功能
+
+1. 支持多个主流交易所的充值地址获取
+2. 智能搜索功能（支持代币名称和符号搜索）
+3. 热门代币快速访问
+4. 支持多链网络
+5. 自动生成充值地址二维码
+6. 深色/浅色主题切换
+7. 响应式设计，支持各种设备
+
+## 📝 更新日志
+
+### v2.0.0 (2023-12-26)
+- 完全重写的前端界面
+- 新增多个交易所支持
+- 添加二维码功能
+- 优化的缓存系统
+- 改进的错误处理
+- 新增深色模式支持
+- 优化的移动端体验
+
+### v1.0.0 (2023-11-26)
+- 初始版本发布
+
+## 📄 许可证
+
+MIT
 
 ---
 

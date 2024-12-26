@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   Layout, 
   Input, 
@@ -15,7 +16,8 @@ import {
   Col,
   Alert,
   Tabs,
-  Switch
+  Switch,
+  Divider
 } from 'antd';
 import { 
   ReloadOutlined, 
@@ -29,6 +31,17 @@ import {
 import axios from 'axios';
 import debounce from 'lodash.debounce'; // 引入 debounce 函数
 import './App.css';
+
+// 导入交易所 Logo
+import BinanceLogo from './components/icons/BinanceLogo';
+import OKXLogo from './components/icons/OKXLogo';
+import BitgetLogo from './components/icons/BitgetLogo';
+import HTXLogo from './components/icons/HTXLogo';
+import KrakenLogo from './components/icons/KrakenLogo';
+import KucoinLogo from './components/icons/KucoinLogo';
+import CoinbaseLogo from './components/icons/CoinbaseLogo';
+import GateioLogo from './components/icons/GateioLogo';
+import MEXCLogo from './components/icons/MEXCLogo';
 
 const { Header, Content } = Layout;
 const { Text, Title } = Typography;
@@ -315,6 +328,103 @@ const App: React.FC = () => {
     )
   });
 
+  // 创建交易所 Tab 项
+  const exchangeTabs = [
+    {
+      key: 'Binance',
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <BinanceLogo style={{ width: '20px', height: '20px' }} />
+          <span>Binance</span>
+        </div>
+      )
+    },
+    {
+      key: 'OKX',
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <OKXLogo style={{ width: '20px', height: '20px' }} isDarkMode={isDarkMode} />
+          <span>OKX</span>
+        </div>
+      )
+    },
+    {
+      key: 'Bitget',
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <BitgetLogo style={{ width: '20px', height: '20px' }} />
+          <span>Bitget</span>
+        </div>
+      )
+    },
+    {
+      key: 'HTX',
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.5 }}>
+          <HTXLogo style={{ width: '14px', height: '20px' }} />
+          <span>HTX</span>
+          <LockOutlined style={{ fontSize: '14px', marginLeft: '4px' }} />
+        </div>
+      ),
+      disabled: true
+    },
+    {
+      key: 'Kraken',
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.5 }}>
+          <KrakenLogo style={{ width: '20px', height: '20px' }} />
+          <span>Kraken</span>
+          <LockOutlined style={{ fontSize: '14px', marginLeft: '4px' }} />
+        </div>
+      ),
+      disabled: true
+    },
+    {
+      key: 'Kucoin',
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.5 }}>
+          <KucoinLogo style={{ width: '20px', height: '20px' }} />
+          <span>KuCoin</span>
+          <LockOutlined style={{ fontSize: '14px', marginLeft: '4px' }} />
+        </div>
+      ),
+      disabled: true
+    },
+    {
+      key: 'Coinbase',
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.5 }}>
+          <CoinbaseLogo style={{ width: '20px', height: '20px' }} />
+          <span>Coinbase</span>
+          <LockOutlined style={{ fontSize: '14px', marginLeft: '4px' }} />
+        </div>
+      ),
+      disabled: true
+    },
+    {
+      key: 'Gateio',
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.5 }}>
+          <GateioLogo style={{ width: '20px', height: '20px' }} />
+          <span>Gate.io</span>
+          <LockOutlined style={{ fontSize: '14px', marginLeft: '4px' }} />
+        </div>
+      ),
+      disabled: true
+    },
+    {
+      key: 'MEXC',
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.5 }}>
+          <MEXCLogo style={{ width: '20px', height: '20px' }} />
+          <span>MEXC</span>
+          <LockOutlined style={{ fontSize: '14px', marginLeft: '4px' }} />
+        </div>
+      ),
+      disabled: true
+    }
+  ];
+
   return (
     <ConfigProvider
       theme={{
@@ -337,17 +447,7 @@ const App: React.FC = () => {
             activeKey={selectedExchange}
             onChange={setSelectedExchange}
             className="exchange-tabs"
-            items={[
-              { label: 'Binance', key: 'Binance' },
-              { label: 'OKX', key: 'OKX' },
-              { label: 'Bitget', key: 'Bitget' },
-              { 
-                label: 'Huobi', 
-                key: 'Huobi',
-                disabled: true,
-                icon: <LockOutlined />
-              },
-            ]}
+            items={exchangeTabs}
           />
           <div className="header-right">
             <Switch
@@ -493,6 +593,35 @@ const App: React.FC = () => {
                           icon={<CopyOutlined />}
                           onClick={copyAddress}
                         />
+                      </div>
+                      
+                      {/* 添加二维码显示 */}
+                      <div style={{ 
+                        marginTop: 16, 
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center'
+                      }}>
+                        <Divider>Scan QR Code</Divider>
+                        <div style={{
+                          padding: 16,
+                          background: '#fff',
+                          borderRadius: 8,
+                          display: 'inline-block'
+                        }}>
+                          <QRCodeSVG
+                            value={depositAddress}
+                            size={200}
+                            level="H"
+                            includeMargin={true}
+                            style={{
+                              display: 'block'
+                            }}
+                          />
+                        </div>
+                        <Text type="secondary" style={{ marginTop: 8 }}>
+                          Scan to get the deposit address
+                        </Text>
                       </div>
                     </div>
 
