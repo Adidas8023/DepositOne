@@ -1,12 +1,4 @@
-<<<<<<< HEAD
-# 🌟 DepositOne 
-### Your Universal Crypto Deposit Assistant | 统一加密货币充值助手
-![DepositOne](./photo.png)
-
-
-=======
 # 🌟 DepositOne
->>>>>>> b4a9a64 (feat: v2.0.0 release)
 
 Your Universal Crypto Deposit Assistant | 统一加密货币充值助手
 
@@ -37,12 +29,12 @@ DepositOne is a modern web application for managing cryptocurrency deposit addre
   - Binance
   - OKX
   - Bitget
+  - MEXC
   - HTX (Coming Soon)
   - Kraken (Coming Soon)
   - KuCoin (Coming Soon)
   - Coinbase (Coming Soon)
   - Gate.io (Coming Soon)
-  - MEXC (Coming Soon)
 
 ### 🛠️ Tech Stack
 
@@ -57,7 +49,7 @@ DepositOne is a modern web application for managing cryptocurrency deposit addre
   - Node.js
   - Express
   - Axios
-  - Redis (Caching)
+  - Memory Cache
 
 ### 🚀 Quick Start
 
@@ -76,7 +68,6 @@ npm start
 ### 🔧 Requirements
 
 - Node.js >= 16
-- Redis (for backend caching)
 
 ### ⚙️ Configuration
 
@@ -88,8 +79,7 @@ REACT_APP_API_BASE_URL=http://localhost:3001/api
 Backend (.env):
 ```env
 PORT=3001
-REDIS_URL=redis://localhost:6379
-CACHE_DURATION=300
+CACHE_DURATION=1800  # 30 minutes
 ```
 
 ### 🌟 Key Features
@@ -101,6 +91,7 @@ CACHE_DURATION=300
 5. Automatic QR code generation
 6. Dark/Light theme switching
 7. Responsive design for all devices
+8. Efficient caching system
 
 ---
 
@@ -122,12 +113,12 @@ DepositOne 是一个用于在同一界面管理多个交易所加密货币充值
   - Binance
   - OKX
   - Bitget
+  - MEXC
   - HTX (即将支持)
   - Kraken (即将支持)
   - KuCoin (即将支持)
   - Coinbase (即将支持)
   - Gate.io (即将支持)
-  - MEXC (即将支持)
 
 ### 🛠️ 技术栈
 
@@ -142,7 +133,7 @@ DepositOne 是一个用于在同一界面管理多个交易所加密货币充值
   - Node.js
   - Express
   - Axios
-  - Redis (缓存)
+  - Memory Cache
 
 ### 🚀 快速开始
 
@@ -161,7 +152,6 @@ npm start
 ### 🔧 环境要求
 
 - Node.js >= 16
-- Redis (用于后端缓存)
 
 ### ⚙️ 配置
 
@@ -173,8 +163,7 @@ REACT_APP_API_BASE_URL=http://localhost:3001/api
 后端配置 (.env):
 ```env
 PORT=3001
-REDIS_URL=redis://localhost:6379
-CACHE_DURATION=300
+CACHE_DURATION=1800  # 30分钟
 ```
 
 ### 🌟 主要功能
@@ -186,16 +175,15 @@ CACHE_DURATION=300
 5. 自动生成充值地址二维码
 6. 深色/浅色主题切换
 7. 响应式设计，支持各种设备
+8. 高效的缓存系统
 
 ## 📝 更新日志
 
 ### v2.0.0 (2023-12-26)
 - 完全重写的前端界面
-- 新增多个交易所支持
-- 添加二维码功能
-- 优化的缓存系统
+- 新增 MEXC 交易所支持
+- 优化的缓存系统 (30分钟)
 - 改进的错误处理
-- 新增深色模式支持
 - 优化的移动端体验
 
 ### v1.0.0 (2023-11-26)
