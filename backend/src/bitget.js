@@ -2,6 +2,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { exchangeCaches } = require('./cacheManager');
 
 // Bitget API 配置
 const BITGET_API_KEY = process.env.BITGET_API_KEY;
@@ -46,9 +47,21 @@ const generateBitgetSignature = (timestamp, method, requestPath, body = '') => {
 };
 
 // 获取所有代币信息
-async function getAllTokens() {
+async function getAllTokens(logToFile) {
   try {
-    logToBitgetFile('INFO', 'Fetching Bitget tokens...');
+    // 检查缓存
+    const cacheKey = 'tokens';
+    const cached = exchangeCaches.bitget.get(cacheKey);
+    if (cached) {
+      logToFile('INFO', 'Using cached token data');
+      return {
+        tokens: cached.data,
+        fromCache: true,
+        lastCacheTime: cached.lastCacheTime
+      };
+    }
+
+    logToFile('INFO', 'Fetching Bitget tokens...');
     
     const timestamp = Date.now().toString();
     const method = 'GET';
@@ -69,7 +82,7 @@ async function getAllTokens() {
 
     const coinInfo = response.data.data;
     
-    logToBitgetFile('API_RESPONSE', {
+    logToFile('API_RESPONSE', {
       status: 'success',
       data: limitLogData(coinInfo)
     });
@@ -92,15 +105,22 @@ async function getAllTokens() {
       }))
       .filter(token => token.networks.length > 0);
 
-    logToBitgetFile('INFO', `Processed ${tokens.length} tokens`);
-    logToBitgetFile('DEBUG', {
+    // 更新缓存
+    exchangeCaches.bitget.set(cacheKey, tokens);
+
+    logToFile('INFO', `Processed ${tokens.length} tokens`);
+    logToFile('DEBUG', {
       message: 'First tokens example',
       data: limitLogData(tokens)
     });
 
-    return tokens;
+    return {
+      tokens,
+      fromCache: false,
+      lastCacheTime: Date.now()
+    };
   } catch (error) {
-    logToBitgetFile('ERROR', {
+    logToFile('ERROR', {
       message: error.message,
       stack: error.stack,
       response: error.response?.data

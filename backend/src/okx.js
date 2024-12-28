@@ -2,6 +2,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { exchangeCaches } = require('./cacheManager');
 
 // OKX API 配置
 const OKX_API_KEY = process.env.OKX_API_KEY;
@@ -46,9 +47,21 @@ const generateOKXSignature = (timestamp, method, requestPath, body = '') => {
 };
 
 // 获取所有代币信息
-async function getAllTokens() {
+async function getAllTokens(logToFile) {
   try {
-    logToOKXFile('INFO', 'Fetching OKX tokens...');
+    // 检查缓存
+    const cacheKey = 'tokens';
+    const cached = exchangeCaches.okx.get(cacheKey);
+    if (cached) {
+      logToFile('INFO', 'Using cached token data');
+      return {
+        tokens: cached.data,
+        fromCache: true,
+        lastCacheTime: cached.lastCacheTime
+      };
+    }
+
+    logToFile('INFO', 'Fetching OKX tokens...');
     
     const timestamp = new Date().toISOString();
     const method = 'GET';
@@ -105,13 +118,20 @@ async function getAllTokens() {
     const tokens = Object.values(groupedCoins)
       .filter(token => token.networks.length > 0);
 
+    // 更新缓存
+    exchangeCaches.okx.set(cacheKey, tokens);
+
     logToOKXFile('INFO', `Processed ${tokens.length} tokens`);
     logToOKXFile('DEBUG', {
       message: 'First tokens example',
       data: limitLogData(tokens)
     });
 
-    return tokens;
+    return {
+      tokens,
+      fromCache: false,
+      lastCacheTime: Date.now()
+    };
   } catch (error) {
     logToOKXFile('ERROR', {
       message: error.message,

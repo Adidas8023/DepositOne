@@ -84,6 +84,14 @@ const App: React.FC = () => {
   const [selectedExchange, setSelectedExchange] = useState('Binance');
   const [lastFetchTime, setLastFetchTime] = useState<string>('');
   const [isFromCache, setIsFromCache] = useState(false);
+  
+  // 添加前端数据缓存
+  const [tokenCache, setTokenCache] = useState<Record<string, {
+    tokens: Token[];
+    fetchTime: string;
+    fromCache: boolean;
+    timestamp: number;
+  }>>({});
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -104,14 +112,40 @@ const App: React.FC = () => {
   }), []); // 空依赖数组，因为 baseURL 是常量
 
   // 获取代币列表
-  const fetchTokens = useCallback(async () => {
+  const fetchTokens = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
-      const response = await api.get(`/tokens/${selectedExchange.toLowerCase()}`);
+      
+      // 检查前端缓存
+      const now = Date.now();
+      const cachedData = tokenCache[selectedExchange.toLowerCase()];
+      if (!forceRefresh && cachedData && (now - cachedData.timestamp) < 30000) { // 30秒前端缓存
+        setTokens(cachedData.tokens);
+        setLastFetchTime(cachedData.fetchTime);
+        setIsFromCache(true);
+        setLoading(false);
+        return;
+      }
+
+      const response = await api.get(`/tokens/${selectedExchange.toLowerCase()}`, {
+        params: { forceRefresh }
+      });
       const data: ApiResponse = response.data;
       const sortedTokens = data.tokens.sort((a: Token, b: Token) => 
         a.symbol.localeCompare(b.symbol)
       );
+      
+      // 更新前端缓存
+      setTokenCache(prev => ({
+        ...prev,
+        [selectedExchange.toLowerCase()]: {
+          tokens: sortedTokens,
+          fetchTime: data.fetchTime,
+          fromCache: data.fromCache,
+          timestamp: now
+        }
+      }));
+
       setTokens(sortedTokens);
       setLastFetchTime(data.fetchTime);
       setIsFromCache(data.fromCache);
@@ -121,12 +155,27 @@ const App: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedExchange, api]);
+  }, [selectedExchange, api, tokenCache]);
+
+  // 修改交易所切换处理
+  const handleExchangeChange = useCallback((exchange: string) => {
+    setSelectedExchange(exchange);
+    setSearchText('');
+    // 如果有缓存数据，立即显示
+    const cachedData = tokenCache[exchange.toLowerCase()];
+    if (cachedData) {
+      setTokens(cachedData.tokens);
+      setLastFetchTime(cachedData.fetchTime);
+      setIsFromCache(true);
+    }
+    // 然后在后台更新数据
+    fetchTokens(false);
+  }, [fetchTokens, tokenCache]);
 
   // 刷新按钮点击处理
   const handleRefresh = useCallback(() => {
     setSearchText(''); // 清空搜索内容
-    fetchTokens(); // 重新获取数据
+    fetchTokens(true); // 强制刷新数据
   }, [fetchTokens]);
 
   // 初始加载和API配置更新时获取数据
@@ -248,18 +297,23 @@ const App: React.FC = () => {
     message.success('Memo/Tag copied to clipboard');
   };
 
-  // 提取 Token Card 属性为一个函数以减少重复代码
-  const tokenCardProps = (token: Token) => ({
-    hoverable: true,
-    style: {
-      height: '100%',
-      background: isDarkMode ? '#141414' : undefined,
-      border: isDarkMode ? '1px solid #303030' : undefined,
-      transition: 'all 0.3s ease'
-    },
-    onClick: () => handleTokenSelect(token),
-    className: `token-card ${isDarkMode ? 'dark-mode' : ''}`,
-    children: (
+  // 添加记忆化的 TokenCard 组件
+  const MemoizedTokenCard = React.memo(({ token, isDarkMode, onSelect }: {
+    token: Token;
+    isDarkMode: boolean;
+    onSelect: (token: Token) => void;
+  }) => (
+    <Card
+      hoverable
+      style={{
+        height: '100%',
+        background: isDarkMode ? '#141414' : undefined,
+        border: isDarkMode ? '1px solid #303030' : undefined,
+        transition: 'all 0.3s ease'
+      }}
+      onClick={() => onSelect(token)}
+      className={`token-card ${isDarkMode ? 'dark-mode' : ''}`}
+    >
       <div style={{ 
         display: 'flex',
         flexDirection: 'column',
@@ -303,29 +357,65 @@ const App: React.FC = () => {
               <Tag 
                 key={network.network}
                 color="default"
-                style={{ 
-                  margin: 0,
-                  borderRadius: '4px'
-                }}
+                className="network-tag"
               >
-                {network.network}
+                <span className="network-tag-text">
+                  {network.network}
+                </span>
               </Tag>
             ))}
           {token.networks.length > 4 && (
             <Tag 
+              className="network-tag"
               style={{ 
-                margin: 0,
-                borderRadius: '4px',
                 backgroundColor: isDarkMode ? '#303030' : '#f0f0f0',
                 color: isDarkMode ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)'
               }}
             >
-              +{token.networks.length - 4}
+              <span className="network-tag-text">
+                +{token.networks.length - 4}
+              </span>
             </Tag>
           )}
         </div>
       </div>
-    )
+    </Card>
+  ));
+
+  // 添加延迟加载的列表组件
+  const TokenList = React.memo(({ tokens, isDarkMode, onSelect }: {
+    tokens: Token[];
+    isDarkMode: boolean;
+    onSelect: (token: Token) => void;
+  }) => {
+    const [visibleTokens, setVisibleTokens] = useState<Token[]>([]);
+    
+    useEffect(() => {
+      // 先显示前20个代币
+      setVisibleTokens(tokens.slice(0, 20));
+      
+      // 延迟加载剩余代币
+      if (tokens.length > 20) {
+        const timer = setTimeout(() => {
+          setVisibleTokens(tokens);
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }, [tokens]);
+
+    return (
+      <Row gutter={[16, 16]}>
+        {visibleTokens.map((token) => (
+          <Col xs={24} sm={12} md={8} lg={6} xl={3} key={token.symbol}>
+            <MemoizedTokenCard
+              token={token}
+              isDarkMode={isDarkMode}
+              onSelect={onSelect}
+            />
+          </Col>
+        ))}
+      </Row>
+    );
   });
 
   // 创建交易所 Tab 项
@@ -354,6 +444,15 @@ const App: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <BitgetLogo style={{ width: '20px', height: '20px' }} />
           <span>Bitget</span>
+        </div>
+      )
+    },
+    {
+      key: 'Mecx',
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <MEXCLogo style={{ width: '20px', height: '20px' }} />
+          <span>MEXC</span>
         </div>
       )
     },
@@ -411,17 +510,6 @@ const App: React.FC = () => {
         </div>
       ),
       disabled: true
-    },
-    {
-      key: 'MEXC',
-      label: (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.5 }}>
-          <MEXCLogo style={{ width: '20px', height: '20px' }} />
-          <span>MEXC</span>
-          <LockOutlined style={{ fontSize: '14px', marginLeft: '4px' }} />
-        </div>
-      ),
-      disabled: true
     }
   ];
 
@@ -445,7 +533,7 @@ const App: React.FC = () => {
           </div>
           <Tabs
             activeKey={selectedExchange}
-            onChange={setSelectedExchange}
+            onChange={handleExchangeChange}
             className="exchange-tabs"
             items={exchangeTabs}
           />
@@ -474,6 +562,28 @@ const App: React.FC = () => {
                   enterButton
                 />
               </div>
+              {selectedExchange === 'Mecx' && (
+                <Alert
+                  message={
+                    <div style={{ fontSize: '12px' }}>
+                      <div>Notice / 注意</div>
+                    </div>
+                  }
+                  description={
+                    <div style={{ fontSize: '12px' }}>
+                      <div>Due to MEXC API limitations, deposit addresses can only be retrieved after they have been created on the exchange website first.</div>
+                      <div style={{ marginTop: '4px' }}>由于 MEXC 接口限制，需要先在交易所网站创建充值地址后才能获取。</div>
+                    </div>
+                  }
+                  type="warning"
+                  showIcon
+                  style={{ 
+                    marginRight: 16,
+                    marginLeft: 16,
+                    flex: 1
+                  }}
+                />
+              )}
               <Button
                 icon={<ReloadOutlined />}
                 onClick={handleRefresh}
@@ -518,7 +628,11 @@ const App: React.FC = () => {
               <Row gutter={[16, 16]}>
                 {getPopularTokens().map((token) => (
                   <Col xs={24} sm={12} md={8} lg={6} xl={3} key={token.symbol}>
-                    <Card {...tokenCardProps(token)} />
+                    <MemoizedTokenCard
+                      token={token}
+                      isDarkMode={isDarkMode}
+                      onSelect={handleTokenSelect}
+                    />
                   </Col>
                 ))}
               </Row>
@@ -530,13 +644,11 @@ const App: React.FC = () => {
             <Title level={4} style={{ margin: '24px 0 16px' }}>
               {searchText ? 'Search Results' : `All ${selectedExchange} Tokens`}
             </Title>
-            <Row gutter={[16, 16]}>
-              {filteredTokens.map((token) => (
-                <Col xs={24} sm={12} md={8} lg={6} xl={3} key={token.symbol}>
-                  <Card {...tokenCardProps(token)} />
-                </Col>
-              ))}
-            </Row>
+            <TokenList
+              tokens={filteredTokens}
+              isDarkMode={isDarkMode}
+              onSelect={handleTokenSelect}
+            />
           </div>
 
           {/* 充值地址弹窗 */}

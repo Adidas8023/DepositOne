@@ -1,5 +1,6 @@
 const axios = require('axios');
 const crypto = require('crypto');
+const { exchangeCaches } = require('./cacheManager');
 
 // 币安 API 配置
 const BINANCE_API_KEY = process.env.BINANCE_API_KEY;
@@ -13,11 +14,6 @@ const generateSignature = (queryString) => {
     .update(queryString)
     .digest('hex');
 };
-
-// 存储代币信息的缓存
-let tokenCache = null;
-let lastCacheTime = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5分钟缓存
 
 // 处理日志数据，限制数组长度
 const limitLogData = (data, limit = 5) => {
@@ -37,12 +33,14 @@ async function getAllTokens(logToFile) {
     logToFile('INFO', 'Fetching tokens...');
     
     // 检查缓存是否有效
-    if (tokenCache && lastCacheTime && (Date.now() - lastCacheTime < CACHE_DURATION)) {
-      logToFile('INFO', 'Returning cached tokens');
+    const cacheKey = 'tokens';
+    const cached = exchangeCaches.binance.get(cacheKey);
+    if (cached) {
+      logToFile('INFO', 'Using cached token data');
       return {
-        tokens: tokenCache,
+        tokens: cached.data,
         fromCache: true,
-        lastCacheTime
+        lastCacheTime: cached.lastCacheTime
       };
     }
 
@@ -104,13 +102,12 @@ async function getAllTokens(logToFile) {
     });
 
     // 更新缓存
-    tokenCache = tokens;
-    lastCacheTime = Date.now();
+    exchangeCaches.binance.set(cacheKey, tokens);
 
     return {
       tokens,
       fromCache: false,
-      lastCacheTime
+      lastCacheTime: Date.now()
     };
   } catch (error) {
     throw error;
