@@ -2,6 +2,8 @@
 
 Your Universal Crypto Deposit Assistant | 统一加密货币充值助手
 
+![Screenshot](./photo.png)
+
 ![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![React](https://img.shields.io/badge/React-18.x-61dafb)
